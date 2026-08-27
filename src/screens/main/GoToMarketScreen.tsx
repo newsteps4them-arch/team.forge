@@ -14,7 +14,7 @@ interface Lead {
   email: string;
   business: string;
   interest: string;
-  timestamp: any;
+  timestamp: string | number | Date;
 }
 
 export const GoToMarketScreen = ({ onBack }: { onBack: () => void }) => {

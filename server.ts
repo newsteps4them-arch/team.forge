@@ -299,21 +299,23 @@ async function startServer() {
       "src/screens/settings/SettingsScreen.tsx"
     ];
 
-    for (const file of criticalFiles) {
-      try {
-        const stats = await fs.stat(path.join(process.cwd(), file));
-        report.fileChecks[file] = {
-          exists: true,
-          sizeBytes: stats.size,
-          lastModified: stats.mtime
-        };
-      } catch (err) {
-        report.fileChecks[file] = {
-          exists: false,
-          error: "FILE_MISSING_OR_UNREADABLE"
-        };
-      }
-    }
+    await Promise.all(
+      criticalFiles.map(async (file) => {
+        try {
+          const stats = await fs.stat(path.join(process.cwd(), file));
+          report.fileChecks[file] = {
+            exists: true,
+            sizeBytes: stats.size,
+            lastModified: stats.mtime
+          };
+        } catch (err) {
+          report.fileChecks[file] = {
+            exists: false,
+            error: "FILE_MISSING_OR_UNREADABLE"
+          };
+        }
+      })
+    );
 
     // 2. Integration / External API Connectivity Verification
     // A. NHTSA Recalls API Check

@@ -9,13 +9,20 @@ export interface AppNotification {
 
 type Listener = (notification: AppNotification) => void;
 
-class NotificationManager {
-  private listeners: Listener[] = [];
+interface Subscription {
+  id: number;
+  listener: Listener;
+}
+
+export class NotificationManager {
+  private listeners: Subscription[] = [];
+  private nextId = 0;
   
   subscribe(listener: Listener) {
-    this.listeners.push(listener);
+    const id = this.nextId++;
+    this.listeners.push({ id, listener });
     return () => {
-      this.listeners = this.listeners.filter(l => l !== listener);
+      this.listeners = this.listeners.filter(sub => sub.id !== id);
     };
   }
 
@@ -26,7 +33,9 @@ class NotificationManager {
       type,
       duration
     };
-    this.listeners.forEach(l => l(notification));
+    // Shallow copy the array before iterating so unsubscribing during dispatch doesn't alter the iteration
+    const currentListeners = [...this.listeners];
+    currentListeners.forEach(sub => sub.listener(notification));
   }
 }
 

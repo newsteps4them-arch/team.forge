@@ -10,7 +10,8 @@
     "static-build": "vite build",
     "start": "node dist/server.cjs",
     "lint": "eslint . --ext ts,tsx --report-unused-disable-directives --max-warnings 0",
-    "preview": "vite preview"
+    "preview": "vite preview",
+    "test": "vitest run"
   },
   "dependencies": {
     "@capacitor-firebase/app": "^8.3.0",

@@ -97,6 +97,10 @@ export const MainDashboard: React.FC<MainDashboardProps> = ({
       }
     }
   };
+
+  const activeProjectData = projects.find((p) => p.id === activeProject);
+  const activeProjectColor = activeProjectData?.color as string || "#F5A623";
+
   return (
     <motion.div
       initial={{ opacity: 0 }}
@@ -133,8 +137,8 @@ export const MainDashboard: React.FC<MainDashboardProps> = ({
           </button>
           <div
             style={{
-              background: `linear-gradient(135deg, ${projects.find((p) => p.id === activeProject)?.color || "#F5A623"}, transparent)`,
-              borderColor: `${projects.find((p) => p.id === activeProject)?.color || "#F5A623"}66`,
+              background: `linear-gradient(135deg, ${activeProjectColor}, transparent)`,
+              borderColor: `${activeProjectColor}66`,
             }}
             className="w-14 h-14 rounded-[1.25rem] flex items-center justify-center font-bold text-black border-2 shadow-[0_10px_25px_rgba(0,0,0,0.5)] relative overflow-hidden group transition-transform hover:scale-105 active:scale-95 cursor-pointer"
             onClick={() => setCurrentScreen("NameAssistant")}

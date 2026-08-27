@@ -130,7 +130,8 @@ service cloud.firestore {
       function isValidItem(data) {
         return data.keys().hasAll(['name', 'quantity', 'userId']) &&
                data.name is string && data.name.size() <= 100 &&
-               data.quantity is int;
+               data.quantity is int &&
+               data.userId == request.auth.uid;
       }
     }
   }

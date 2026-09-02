@@ -1,4 +1,4 @@
-import React, { useState, useRef, useEffect, useMemo } from "react";
+import React, { useState, useRef, useEffect, useMemo, memo } from "react";
 import { motion } from "motion/react";
 import { ArrowLeft, Terminal, Send, Save, Download, Tv, ChevronDown, ChevronRight, ChevronsUpDown, TextSearch } from "lucide-react";
 import { toast } from "../../lib/notifications";
@@ -100,7 +100,7 @@ const getTransactionDate = (t: CommandTransaction): Date | null => {
 };
 
 // ResponseLineItem handles individual line truncation and folding to prevent layout disruption with huge outputs
-const ResponseLineItem = ({ resp, codeScanEnabled }: { resp: ReturnType<typeof parseLogLine>, codeScanEnabled?: boolean }) => {
+const ResponseLineItem = memo(function ResponseLineItem({ resp, codeScanEnabled }: { resp: ReturnType<typeof parseLogLine>, codeScanEnabled?: boolean }) {
   const [expanded, setExpanded] = useState(false);
   const isTooLong = resp.content.length > 80;
   
@@ -146,7 +146,7 @@ const ResponseLineItem = ({ resp, codeScanEnabled }: { resp: ReturnType<typeof p
       </div>
     </div>
   );
-};
+});
 
 export const TerminalScreen = ({
   onBack,

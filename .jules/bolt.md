@@ -7,3 +7,6 @@
 ## 2025-02-18 - Memoizing list item components on frequent parent updates
 **Learning:** In terminal-like interfaces (`TerminalScreen`) where state updates frequently (like on every keystroke when typing an OBD command), unmemoized list item components (like `ResponseLineItem`) will cause massive redundant re-renders. When a long list is rendered inside a component taking text input, the individual row components must be memoized.
 **Action:** Always wrap list item components that take stable props (like parsed log objects) in `memo(...)` when rendered in a parent that receives frequent, high-velocity state updates.
+## 2025-02-18 - Memoizing List Items with Callbacks
+**Learning:** When extracting list items into memoized child components to prevent redundant re-renders (like in the \`TerminalScreen\`), passing unmemoized inline functions (e.g., \`() => setCollapsed(prev => !prev)\`) breaks the memoization because the function reference changes on every parent render.
+**Action:** Always wrap event handler callbacks in \`useCallback\` in the parent component before passing them down to a \`React.memo\` child component to ensure stable references.

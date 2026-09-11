@@ -1,4 +1,4 @@
-import React, { useState, useRef, useEffect, useMemo, memo } from "react";
+import React, { useState, useRef, useEffect, useMemo, memo, useCallback } from "react";
 import { motion } from "motion/react";
 import { ArrowLeft, Terminal, Send, Save, Download, Tv, ChevronDown, ChevronRight, ChevronsUpDown, TextSearch } from "lucide-react";
 import { toast } from "../../lib/notifications";
@@ -148,7 +148,119 @@ const ResponseLineItem = memo(function ResponseLineItem({ resp, codeScanEnabled 
   );
 });
 
-export const TerminalScreen = ({
+
+const TransactionItem = memo(function TransactionItem({
+  t,
+  isCollapsed,
+  codeScanEnabled,
+  onToggleCollapse
+}: {
+  t: CommandTransaction;
+  isCollapsed: boolean;
+  codeScanEnabled: boolean;
+  onToggleCollapse: (id: string) => void;
+}) {
+  const hasResponses = t.responses.length > 0;
+
+  if (!t.tx) {
+    // Orphan start-up system initialization logs
+    return (
+      <div className="border border-[#00ff41]/20 bg-[#00ff41]/5 p-3 rounded-none relative">
+        <div className="flex items-center gap-2 mb-2 text-xs text-[#00ff41]/50 select-none font-bold uppercase transition-opacity">
+          <Terminal className="w-3.5 h-3.5 text-[#00ff41]/40" />
+          <span>System Diagnostics Stream</span>
+          {hasResponses && (
+            <button
+              onClick={() => onToggleCollapse(t.id)}
+              className="ml-auto bg-[#00ff41]/10 border border-[#00ff41]/20 px-2 py-0.5 text-[#00ff41] hover:bg-[#00ff41]/20 rounded-sm text-[10px]"
+            >
+              {isCollapsed ? "[+] Unfold Info" : "[-] Fold Info"}
+            </button>
+          )}
+        </div>
+        {!isCollapsed && (
+          <div className="space-y-1">
+            {t.responses.map((resp, idx) => (
+              <div key={idx} className="flex items-start gap-3 text-[#00ff41]/70 font-mono text-xs">
+                <span className="opacity-50 select-none flex-shrink-0">RX</span>
+                <span className="opacity-30">|</span>
+                <span className="break-all">
+                  {codeScanEnabled ? (() => {
+                    const parts = resp.content.split(/(error|failed|invalid|exception|abort|syntax error|no data)/gi);
+                    return parts.map((part, i) => i % 2 === 1 ? <span key={i} className="bg-red-500/20 text-red-400 font-bold border border-red-500/50 px-1 rounded mx-0.5 animate-pulse">{part}</span> : part);
+                  })() : resp.content}
+                </span>
+              </div>
+            ))}
+          </div>
+        )}
+      </div>
+    );
+  }
+
+  // Transmit-Receive command block with interactive fold
+  return (
+    <div className="border border-[#00ff41]/20 bg-black/40 rounded-none overflow-hidden hover:bg-black/60 transition-colors">
+      {/* Header Command line representing the transmitter TX trigger */}
+      <div
+        onClick={() => hasResponses && onToggleCollapse(t.id)}
+        className={`flex items-center gap-3 px-3 py-2.5 select-none user-none ${hasResponses ? "cursor-pointer hover:bg-[#00ff41]/5" : "pointer-events-none"}`}
+      >
+        {/* Expand / Collapse Icon */}
+        {hasResponses ? (
+          <span className="text-[#00ff41] flex-shrink-0">
+            {isCollapsed ? (
+              <ChevronRight className="w-4 h-4 text-[#00ff41]" />
+            ) : (
+              <ChevronDown className="w-4 h-4 text-[#00ff41]" />
+            )}
+          </span>
+        ) : (
+          <span className="w-4 h-4 flex-shrink-0" />
+        )}
+
+        {/* Green TX Indicator Badge */}
+        <span className="bg-[#00ff41]/10 text-[#00ff41] text-[10px] font-black px-1.5 py-0.5 rounded border border-[#00ff41]/20 flex-shrink-0 select-none">
+          TX
+        </span>
+
+        {/* Timestamp tag */}
+        {t.tx.timestamp && (
+          <span className="text-[#00ff41]/40 text-xs font-mono select-none">
+            [{`${t.tx.timestamp}`}]
+          </span>
+        )}
+
+        {/* Command text content */}
+        <span className="text-[#00ff41] font-bold font-mono text-sm break-all">
+          {t.tx.content}
+        </span>
+
+        {/* Badge telling you how many lines or bytes are folded */}
+        {hasResponses && isCollapsed && (
+          <span className="ml-auto bg-[#00ff41]/15 text-[#00ff41]/70 border border-[#00ff41]/20 text-[10px] px-2 py-0.5 rounded font-mono select-none">
+            {t.responses.length} output line{t.responses.length > 1 ? "s" : ""} folded
+          </span>
+        )}
+      </div>
+
+      {/* Foldable Content containing individual RX packages with line folding */}
+      {!isCollapsed && hasResponses && (
+        <div className="border-t border-[#00ff41]/15 bg-[#00ff41]/2 pl-8 pr-3 py-2 space-y-1.5 relative">
+          {/* Visual vertical connector rail */}
+          <div className="absolute left-[21px] top-0 bottom-4 w-[1px] bg-[#00ff41]/15 pointer-events-none" />
+
+          {t.responses.map((resp, idx) => (
+            <ResponseLineItem key={idx} resp={resp} codeScanEnabled={codeScanEnabled} />
+          ))}
+        </div>
+      )}
+    </div>
+  );
+});
+
+export const TerminalScreen
+ = ({
   onBack,
   onCommand,
   logs = [],
@@ -161,6 +273,10 @@ export const TerminalScreen = ({
   const [crtEnabled, setCrtEnabled] = useState(true);
   const [codeScanEnabled, setCodeScanEnabled] = useState(false);
   const [collapsedTxIds, setCollapsedTxIds] = useState<Record<string, boolean>>({});
+
+  const handleToggleCollapse = useCallback((id: string) => {
+    setCollapsedTxIds(prev => ({ ...prev, [id]: !prev[id] }));
+  }, []);
   const logEndRef = useRef<HTMLDivElement>(null);
 
   // "all" | "no-system" (hides system initialization stream/orphans) | "commands" (raw commands and replies) | "errors"
@@ -486,106 +602,15 @@ export const TerminalScreen = ({
             -- NO VALID TELEMETRY SEQUENCE FRAMES UNDER FILTER "{filterMode.replace("-", " ")}" --
           </div>
         ) : (
-          filteredTransactions.map((t) => {
-          const isCollapsed = !!collapsedTxIds[t.id];
-          const hasResponses = t.responses.length > 0;
-          
-          if (!t.tx) {
-            // Orphan start-up system initialization logs
-            return (
-              <div key={t.id} className="border border-[#00ff41]/20 bg-[#00ff41]/5 p-3 rounded-none relative">
-                <div className="flex items-center gap-2 mb-2 text-xs text-[#00ff41]/50 select-none font-bold uppercase transition-opacity">
-                  <Terminal className="w-3.5 h-3.5 text-[#00ff41]/40" />
-                  <span>System Diagnostics Stream</span>
-                  {hasResponses && (
-                    <button 
-                      onClick={() => setCollapsedTxIds(prev => ({ ...prev, [t.id]: !isCollapsed }))} 
-                      className="ml-auto bg-[#00ff41]/10 border border-[#00ff41]/20 px-2 py-0.5 text-[#00ff41] hover:bg-[#00ff41]/20 rounded-sm text-[10px]"
-                    >
-                      {isCollapsed ? "[+] Unfold Info" : "[-] Fold Info"}
-                    </button>
-                  )}
-                </div>
-                {!isCollapsed && (
-                  <div className="space-y-1">
-                    {t.responses.map((resp, idx) => (
-                      <div key={idx} className="flex items-start gap-3 text-[#00ff41]/70 font-mono text-xs">
-                        <span className="opacity-50 select-none flex-shrink-0">RX</span>
-                        <span className="opacity-30">|</span>
-                        <span className="break-all">
-                          {codeScanEnabled ? (() => {
-                            const parts = resp.content.split(/(error|failed|invalid|exception|abort|syntax error|no data)/gi);
-                            return parts.map((part, i) => i % 2 === 1 ? <span key={i} className="bg-red-500/20 text-red-400 font-bold border border-red-500/50 px-1 rounded mx-0.5 animate-pulse">{part}</span> : part);
-                          })() : resp.content}
-                        </span>
-                      </div>
-                    ))}
-                  </div>
-                )}
-              </div>
-            );
-          }
-
-          // Transmit-Receive command block with interactive fold
-          return (
-            <div key={t.id} className="border border-[#00ff41]/20 bg-black/40 rounded-none overflow-hidden hover:bg-black/60 transition-colors">
-              {/* Header Command line representing the transmitter TX trigger */}
-              <div 
-                onClick={() => hasResponses && setCollapsedTxIds(prev => ({ ...prev, [t.id]: !isCollapsed }))}
-                className={`flex items-center gap-3 px-3 py-2.5 select-none user-none ${hasResponses ? "cursor-pointer hover:bg-[#00ff41]/5" : "pointer-events-none"}`}
-              >
-                {/* Expand / Collapse Icon */}
-                {hasResponses ? (
-                  <span className="text-[#00ff41] flex-shrink-0">
-                    {isCollapsed ? (
-                      <ChevronRight className="w-4 h-4 text-[#00ff41]" />
-                    ) : (
-                      <ChevronDown className="w-4 h-4 text-[#00ff41]" />
-                    )}
-                  </span>
-                ) : (
-                  <span className="w-4 h-4 flex-shrink-0" />
-                )}
-                
-                {/* Green TX Indicator Badge */}
-                <span className="bg-[#00ff41]/10 text-[#00ff41] text-[10px] font-black px-1.5 py-0.5 rounded border border-[#00ff41]/20 flex-shrink-0 select-none">
-                  TX
-                </span>
-                
-                {/* Timestamp tag */}
-                {t.tx.timestamp && (
-                  <span className="text-[#00ff41]/40 text-xs font-mono select-none">
-                    [{t.tx.timestamp}]
-                  </span>
-                )}
-                
-                {/* Command text content */}
-                <span className="text-[#00ff41] font-bold font-mono text-sm break-all">
-                  {t.tx.content}
-                </span>
-
-                {/* Badge telling you how many lines or bytes are folded */}
-                {hasResponses && isCollapsed && (
-                  <span className="ml-auto bg-[#00ff41]/15 text-[#00ff41]/70 border border-[#00ff41]/20 text-[10px] px-2 py-0.5 rounded font-mono select-none">
-                    {t.responses.length} output line{t.responses.length > 1 ? "s" : ""} folded
-                  </span>
-                )}
-              </div>
-
-              {/* Foldable Content containing individual RX packages with line folding */}
-              {!isCollapsed && hasResponses && (
-                <div className="border-t border-[#00ff41]/15 bg-[#00ff41]/2 pl-8 pr-3 py-2 space-y-1.5 relative">
-                  {/* Visual vertical connector rail */}
-                  <div className="absolute left-[21px] top-0 bottom-4 w-[1px] bg-[#00ff41]/15 pointer-events-none" />
-
-                  {t.responses.map((resp, idx) => (
-                    <ResponseLineItem key={idx} resp={resp} codeScanEnabled={codeScanEnabled} />
-                  ))}
-                </div>
-              )}
-            </div>
-          );
-        })
+          filteredTransactions.map((t) => (
+          <TransactionItem
+            key={t.id}
+            t={t}
+            isCollapsed={!!collapsedTxIds[t.id]}
+            codeScanEnabled={codeScanEnabled}
+            onToggleCollapse={handleToggleCollapse}
+          />
+        ))
       )}
 
         {/* Flashing cursor sequence line */}

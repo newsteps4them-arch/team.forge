@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useMemo } from "react";
 import { motion } from "motion/react";
 import { ArrowLeft, Gauge, Activity, Zap, Search, CheckCircle } from "lucide-react";
 import { D3StreamChart } from "../../components/D3StreamChart";
@@ -128,11 +128,15 @@ export const LiveDataScreen = ({
     
   const activePidDef = AVAILABLE_PIDS.find(p => p.id === selectedChartPid) || AVAILABLE_PIDS[0];
 
-  const filteredPids = AVAILABLE_PIDS.filter(pid => {
-    const matchesSearch = pid.name.toLowerCase().includes(searchPid.toLowerCase()) || pid.id.toLowerCase().includes(searchPid.toLowerCase());
-    const matchesGroup = filterGroup === "All" || pid.group === filterGroup;
-    return matchesSearch && matchesGroup;
-  });
+  // ⚡ Bolt Optimization: Memoize the filtered PIDs array so it is not re-evaluated
+  // on every tick of the high-frequency telemetry data updates.
+  const filteredPids = useMemo(() => {
+    return AVAILABLE_PIDS.filter(pid => {
+      const matchesSearch = pid.name.toLowerCase().includes(searchPid.toLowerCase()) || pid.id.toLowerCase().includes(searchPid.toLowerCase());
+      const matchesGroup = filterGroup === "All" || pid.group === filterGroup;
+      return matchesSearch && matchesGroup;
+    });
+  }, [searchPid, filterGroup]);
 
   const [tab, setTab] = useState<"dashboard" | "maps">("dashboard");
 

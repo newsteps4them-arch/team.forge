@@ -7,3 +7,6 @@
 ## 2025-02-18 - Memoizing list item components on frequent parent updates
 **Learning:** In terminal-like interfaces (`TerminalScreen`) where state updates frequently (like on every keystroke when typing an OBD command), unmemoized list item components (like `ResponseLineItem`) will cause massive redundant re-renders. When a long list is rendered inside a component taking text input, the individual row components must be memoized.
 **Action:** Always wrap list item components that take stable props (like parsed log objects) in `memo(...)` when rendered in a parent that receives frequent, high-velocity state updates.
+## 2024-05-24 - Memoizing list filters with high-frequency updates
+**Learning:** In screens that display both a configurable list (like `filteredPids`) and a high-frequency updating component (like telemetry data in `LiveDataScreen`), leaving the list filter unmemoized causes it to be re-evaluated on every tick of the high-frequency data, wasting rendering cycles.
+**Action:** Always wrap array filtering and transformations in `useMemo` when the parent component also handles high-frequency state updates (like polling or live telemetry).

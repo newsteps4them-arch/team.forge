@@ -1,6 +1,6 @@
 import { Capacitor } from "@capacitor/core";
 import { FirebaseAuthentication } from "@capacitor-firebase/authentication";
-import React, { useState, useEffect, useRef } from "react";
+import React, { useState, useEffect, useRef, useMemo } from "react";
 import { motion, AnimatePresence } from "motion/react";
 import {
   AreaChart,
@@ -3067,9 +3067,12 @@ export default function App() {
     }
   };
 
-  const filteredTasks = tasks
-    .filter((t) => t.text.toLowerCase().includes(searchQuery.toLowerCase()))
-    .filter((t) => filterPriority === "All" || t.priority === filterPriority);
+  // ⚡ Bolt Optimization: Memoized filtered array to prevent expensive derivations on frequent parent updates
+  const filteredTasks = useMemo(() => {
+    return tasks
+      .filter((t) => t.text.toLowerCase().includes(searchQuery.toLowerCase()))
+      .filter((t) => filterPriority === "All" || t.priority === filterPriority);
+  }, [tasks, searchQuery, filterPriority]);
 
   const handleBatchPriority = async (priority: "Low" | "Medium" | "High") => {
     if (!user) return;

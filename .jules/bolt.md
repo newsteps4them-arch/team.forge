@@ -7,3 +7,6 @@
 ## 2025-02-18 - Memoizing list item components on frequent parent updates
 **Learning:** In terminal-like interfaces (`TerminalScreen`) where state updates frequently (like on every keystroke when typing an OBD command), unmemoized list item components (like `ResponseLineItem`) will cause massive redundant re-renders. When a long list is rendered inside a component taking text input, the individual row components must be memoized.
 **Action:** Always wrap list item components that take stable props (like parsed log objects) in `memo(...)` when rendered in a parent that receives frequent, high-velocity state updates.
+## 2026-09-19 - Prevent Repository Pollution
+**Learning:** When performing string replacements or writing temporary scratchpad scripts (like `patch_app.ts`, `bolt_test.ts`, etc.) to process codebase operations, these files must be meticulously cleaned up before submitting. Leaving them causes massive repository bloat, CI failures, and pollutes the code review process.
+**Action:** Always run `git rm` or `rm` on any generated helper scripts or backup files (e.g., `*.test`) before running code review or marking the task complete.

@@ -7,3 +7,8 @@
 ## 2025-02-18 - Memoizing list item components on frequent parent updates
 **Learning:** In terminal-like interfaces (`TerminalScreen`) where state updates frequently (like on every keystroke when typing an OBD command), unmemoized list item components (like `ResponseLineItem`) will cause massive redundant re-renders. When a long list is rendered inside a component taking text input, the individual row components must be memoized.
 **Action:** Always wrap list item components that take stable props (like parsed log objects) in `memo(...)` when rendered in a parent that receives frequent, high-velocity state updates.
+## 2024-09-22 - Avoid Memoizing O(1) Lookups
+
+**Learning:** When dealing with high-frequency live data updates in React, wrapping O(1) array access operations (like fetching the last item in a telemetry array) in `useMemo` is an anti-pattern. Since the array itself is updated frequently, the `useMemo` dependency changes almost constantly, rendering the memoization useless. Furthermore, the overhead of React's `useMemo` mechanism is actually greater than the O(1) lookup itself, so adding it strictly degrades performance rather than improving it.
+
+**Action:** Only use `useMemo` for computationally expensive operations (like filtering lists, string matching, or mapping complex objects). For simple array indices or direct object property access, access the values directly in the render path.

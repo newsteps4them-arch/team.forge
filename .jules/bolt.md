@@ -7,3 +7,7 @@
 ## 2025-02-18 - Memoizing list item components on frequent parent updates
 **Learning:** In terminal-like interfaces (`TerminalScreen`) where state updates frequently (like on every keystroke when typing an OBD command), unmemoized list item components (like `ResponseLineItem`) will cause massive redundant re-renders. When a long list is rendered inside a component taking text input, the individual row components must be memoized.
 **Action:** Always wrap list item components that take stable props (like parsed log objects) in `memo(...)` when rendered in a parent that receives frequent, high-velocity state updates.
+
+## 2025-02-18 - Memoizing transaction blocks in TerminalScreen
+**Learning:** In terminal-like interfaces (TerminalScreen) where state updates frequently (like on every keystroke when typing an OBD command), unmemoized list item components containing arrays of complex derivations will cause massive redundant re-renders. When a long list is rendered inside a component taking text input, the individual row components must be memoized.
+**Action:** Always wrap complex list item components (like TransactionBlock) in memo(...) when rendered in a parent that receives frequent, high-velocity state updates.

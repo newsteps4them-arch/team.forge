@@ -1,6 +1,6 @@
 import { Capacitor } from "@capacitor/core";
 import { FirebaseAuthentication } from "@capacitor-firebase/authentication";
-import React, { useState, useEffect, useRef } from "react";
+import React, { useState, useEffect, useRef, useMemo } from "react";
 import { motion, AnimatePresence } from "motion/react";
 import {
   AreaChart,
@@ -2092,6 +2092,19 @@ const InventoryScreen = ({
   );
 };
 
+const systemMap: Record<string, { label: string; color: string }> = {
+  P: { label: "Powertrain", color: "#EF4444" },
+  C: { label: "Chassis", color: "#3B82F6" },
+  B: { label: "Body", color: "#10B981" },
+  U: { label: "Network", color: "#8B5CF6" },
+};
+
+const severityMap: Record<string, { label: string; color: string }> = {
+  Permanent: { label: "High / Permanent", color: "#EF4444" },
+  Stored: { label: "Medium / Stored", color: "#F5A623" },
+  Pending: { label: "Low / Pending", color: "#10B981" },
+};
+
 const DiagnosticScreen = ({
   onBack,
   connected,
@@ -2111,20 +2124,7 @@ const DiagnosticScreen = ({
   const [scanType, setScanType] = useState<string>("");
   const [activeTab, setActiveTab] = useState<"system" | "severity">("system");
 
-  const systemMap: Record<string, { label: string; color: string }> = {
-    P: { label: "Powertrain", color: "#EF4444" },
-    C: { label: "Chassis", color: "#3B82F6" },
-    B: { label: "Body", color: "#10B981" },
-    U: { label: "Network", color: "#8B5CF6" },
-  };
-
-  const severityMap: Record<string, { label: string; color: string }> = {
-    Permanent: { label: "High / Permanent", color: "#EF4444" },
-    Stored: { label: "Medium / Stored", color: "#F5A623" },
-    Pending: { label: "Low / Pending", color: "#10B981" },
-  };
-
-  const getSystemDistribution = () => {
+  const systemData = useMemo(() => {
     const counts: Record<string, number> = { P: 0, C: 0, B: 0, U: 0 };
     dtcs.forEach((dtc) => {
       const firstChar = dtc.code.charAt(0).toUpperCase();
@@ -2142,9 +2142,9 @@ const DiagnosticScreen = ({
         color: systemMap[key]?.color || "#6B7280",
       }))
       .filter((item) => item.value > 0);
-  };
+  }, [dtcs]);
 
-  const getSeverityDistribution = () => {
+  const severityData = useMemo(() => {
     const counts: Record<string, number> = { Permanent: 0, Stored: 0, Pending: 0 };
     dtcs.forEach((dtc) => {
       const status = dtc.status || "Stored";
@@ -2162,10 +2162,7 @@ const DiagnosticScreen = ({
         color: severityMap[key]?.color || "#F59E0B",
       }))
       .filter((item) => item.value > 0);
-  };
-
-  const systemData = getSystemDistribution();
-  const severityData = getSeverityDistribution();
+  }, [dtcs]);
   const chartData = activeTab === "system" ? systemData : severityData;
 
   const handleScan = (type: "quick" | "deep") => {
@@ -3067,9 +3064,11 @@ export default function App() {
     }
   };
 
-  const filteredTasks = tasks
-    .filter((t) => t.text.toLowerCase().includes(searchQuery.toLowerCase()))
-    .filter((t) => filterPriority === "All" || t.priority === filterPriority);
+  const filteredTasks = useMemo(() => {
+    return tasks
+      .filter((t) => t.text.toLowerCase().includes(searchQuery.toLowerCase()))
+      .filter((t) => filterPriority === "All" || t.priority === filterPriority);
+  }, [tasks, searchQuery, filterPriority]);
 
   const handleBatchPriority = async (priority: "Low" | "Medium" | "High") => {
     if (!user) return;

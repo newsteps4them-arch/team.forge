@@ -509,16 +509,7 @@ export const TerminalScreen = ({
                 {!isCollapsed && (
                   <div className="space-y-1">
                     {t.responses.map((resp, idx) => (
-                      <div key={idx} className="flex items-start gap-3 text-[#00ff41]/70 font-mono text-xs">
-                        <span className="opacity-50 select-none flex-shrink-0">RX</span>
-                        <span className="opacity-30">|</span>
-                        <span className="break-all">
-                          {codeScanEnabled ? (() => {
-                            const parts = resp.content.split(/(error|failed|invalid|exception|abort|syntax error|no data)/gi);
-                            return parts.map((part, i) => i % 2 === 1 ? <span key={i} className="bg-red-500/20 text-red-400 font-bold border border-red-500/50 px-1 rounded mx-0.5 animate-pulse">{part}</span> : part);
-                          })() : resp.content}
-                        </span>
-                      </div>
+                      <ResponseLineItem key={idx} resp={resp} codeScanEnabled={codeScanEnabled} />
                     ))}
                   </div>
                 )}

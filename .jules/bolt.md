@@ -7,3 +7,6 @@
 ## 2025-02-18 - Memoizing list item components on frequent parent updates
 **Learning:** In terminal-like interfaces (`TerminalScreen`) where state updates frequently (like on every keystroke when typing an OBD command), unmemoized list item components (like `ResponseLineItem`) will cause massive redundant re-renders. When a long list is rendered inside a component taking text input, the individual row components must be memoized.
 **Action:** Always wrap list item components that take stable props (like parsed log objects) in `memo(...)` when rendered in a parent that receives frequent, high-velocity state updates.
+## 2025-02-18 - Replacing unmemoized row components with ResponseLineItem
+**Learning:** In TerminalScreen, rendering a large array of log responses with inline unmemoized UI components directly inside a map function can lead to expensive redundant re-renders on high-frequency state updates like keystrokes. Replacing the inline JSX with the existing memoized ResponseLineItem component avoids these unnecessary re-renders.
+**Action:** Always use the memoized list item components like ResponseLineItem rather than inline JSX inside map loops when rendering lists inside components with frequent state updates.

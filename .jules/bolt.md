@@ -7,3 +7,6 @@
 ## 2025-02-18 - Memoizing list item components on frequent parent updates
 **Learning:** In terminal-like interfaces (`TerminalScreen`) where state updates frequently (like on every keystroke when typing an OBD command), unmemoized list item components (like `ResponseLineItem`) will cause massive redundant re-renders. When a long list is rendered inside a component taking text input, the individual row components must be memoized.
 **Action:** Always wrap list item components that take stable props (like parsed log objects) in `memo(...)` when rendered in a parent that receives frequent, high-velocity state updates.
+## 2025-02-18 - Memoizing large message lists in chat components
+**Learning:** In chat interfaces like `ChatScreen`, rendering the entire list of messages directly in the render function while sharing state with a frequently updated text `input` causes every single message to needlessly re-render on every keystroke.
+**Action:** Extract chat message elements into their own `ChatMessageItem` components and wrap them in `React.memo` to eliminate lag during text entry.

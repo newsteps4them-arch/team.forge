@@ -972,6 +972,67 @@ const ReadyScreen = ({ onFinish }: { onFinish: () => void }) => {
 
 
 
+// ⚡ Bolt Optimization: Wrapped ChatMessageItem with React.memo to prevent unnecessary re-renders when parent's input changes.
+const ChatMessageItem = memo(function ChatMessageItem({
+  msg,
+  idx,
+  userName,
+  assistantName
+}: {
+  msg: ChatMessage & { id?: string },
+  idx: number,
+  userName: string,
+  assistantName: string
+}) {
+  return (
+    <motion.div
+      initial={{ opacity: 0, y: 24 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{
+        type: "spring",
+        stiffness: 240,
+        damping: 24,
+        opacity: { duration: 0.25 }
+      }}
+      layout="position"
+      className={`flex flex-col ${msg.role === "user" ? "items-end" : msg.role === "system" ? "items-center" : "items-start"}`}
+    >
+      <div
+        className={`shadow-lg max-w-[90%] p-5 ${msg.role === "user" ? "bg-primary text-black rounded-[2rem] rounded-tr-md" : msg.role === "system" ? "bg-black/50 border border-blue-500/20 text-blue-400 font-mono text-xs rounded-xl" : "bg-surface text-text-primary border border-white/5 rounded-[2rem] rounded-tl-md"}`}
+      >
+        {msg.image && (
+          <img
+            src={msg.image}
+            alt="Uploaded"
+            className="rounded-xl w-full max-h-48 object-cover mb-3 border border-black/10"
+          />
+        )}
+        {msg.text &&
+          (msg.role === "model" ? (
+            <div className="markdown-body text-text-primary/90">
+              <Markdown>{msg.text}</Markdown>
+            </div>
+          ) : msg.role === "system" ? (
+            <p className="whitespace-pre-wrap leading-relaxed">
+              {msg.text}
+            </p>
+          ) : (
+            <p className="whitespace-pre-wrap text-[15px] leading-relaxed font-medium">
+              {msg.text}
+            </p>
+          ))}
+      </div>
+      <span className="text-[10px] text-text-dim mt-2 tracking-widest uppercase px-2">
+        {msg.role === "user"
+          ? userName
+          : msg.role === "system"
+          ? "Terminal LOG"
+          : assistantName}
+      </span>
+    </motion.div>
+  );
+});
+
 const ChatScreen = ({
   onBack,
   onboarding,
@@ -1673,52 +1734,13 @@ const ChatScreen = ({
         )}
 
         {messages.map((msg, idx) => (
-          <motion.div
-            initial={{ opacity: 0, y: 24 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ 
-              type: "spring", 
-              stiffness: 240, 
-              damping: 24,
-              opacity: { duration: 0.25 }
-            }}
-            layout="position"
+          <ChatMessageItem
             key={msg.id || idx}
-            className={`flex flex-col ${msg.role === "user" ? "items-end" : msg.role === "system" ? "items-center" : "items-start"}`}
-          >
-            <div
-              className={`shadow-lg max-w-[90%] p-5 ${msg.role === "user" ? "bg-primary text-black rounded-[2rem] rounded-tr-md" : msg.role === "system" ? "bg-black/50 border border-blue-500/20 text-blue-400 font-mono text-xs rounded-xl" : "bg-surface text-text-primary border border-white/5 rounded-[2rem] rounded-tl-md"}`}
-            >
-              {msg.image && (
-                <img
-                  src={msg.image}
-                  alt="Uploaded"
-                  className="rounded-xl w-full max-h-48 object-cover mb-3 border border-black/10"
-                />
-              )}
-              {msg.text &&
-                (msg.role === "model" ? (
-                  <div className="markdown-body text-text-primary/90">
-                    <Markdown>{msg.text}</Markdown>
-                  </div>
-                ) : msg.role === "system" ? (
-                  <p className="whitespace-pre-wrap leading-relaxed">
-                    {msg.text}
-                  </p>
-                ) : (
-                  <p className="whitespace-pre-wrap text-[15px] leading-relaxed font-medium">
-                    {msg.text}
-                  </p>
-                ))}
-            </div>
-            <span className="text-[10px] text-text-dim mt-2 tracking-widest uppercase px-2">
-              {msg.role === "user"
-                ? onboarding.userName
-                : msg.role === "system"
-                ? "Terminal LOG"
-                : onboarding.assistantName}
-            </span>
-          </motion.div>
+            msg={msg}
+            idx={idx}
+            userName={onboarding.userName}
+            assistantName={onboarding.assistantName}
+          />
         ))}
 
         {loading && (

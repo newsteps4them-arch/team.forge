@@ -7,3 +7,7 @@
 ## 2025-02-18 - Memoizing list item components on frequent parent updates
 **Learning:** In terminal-like interfaces (`TerminalScreen`) where state updates frequently (like on every keystroke when typing an OBD command), unmemoized list item components (like `ResponseLineItem`) will cause massive redundant re-renders. When a long list is rendered inside a component taking text input, the individual row components must be memoized.
 **Action:** Always wrap list item components that take stable props (like parsed log objects) in `memo(...)` when rendered in a parent that receives frequent, high-velocity state updates.
+
+## 2026-10-22 - Extracting string manipulations from filter loops
+**Learning:** In React components receiving high-frequency updates (e.g., live telemetry in `LiveDataScreen`), leaving intensive string manipulation operations (like `.toLowerCase()`) inside `.filter()` loops causes measurable CPU spikes and garbage collection pressure because they execute per item on every render tick.
+**Action:** Always extract the search query's `.toLowerCase()` evaluation outside the loop and wrap the filtering array operation in `useMemo` to prevent redundant re-evaluations during telemetry state changes.

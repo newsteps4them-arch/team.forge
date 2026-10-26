@@ -7,3 +7,6 @@
 ## 2025-02-18 - Memoizing list item components on frequent parent updates
 **Learning:** In terminal-like interfaces (`TerminalScreen`) where state updates frequently (like on every keystroke when typing an OBD command), unmemoized list item components (like `ResponseLineItem`) will cause massive redundant re-renders. When a long list is rendered inside a component taking text input, the individual row components must be memoized.
 **Action:** Always wrap list item components that take stable props (like parsed log objects) in `memo(...)` when rendered in a parent that receives frequent, high-velocity state updates.
+## 2025-10-26 - Optimizing String Operations in High-Frequency Filters
+**Learning:** In components handling live telemetry, placing `.toLowerCase()` inside a filter loop causes redundant object creation and CPU spikes on every render. Since the state updates several times a second (e.g., 800ms intervals), even small O(N) operations cause noticeable garbage collection pressure. Memoizing the filter array entirely using `useMemo` prevents it from running during unrelated telemetry state updates.
+**Action:** Always extract static string operations like `.toLowerCase()` outside of loops, and wrap list filtering in `useMemo` when the parent component receives high-frequency data streams.

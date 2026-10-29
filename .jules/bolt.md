@@ -7,3 +7,7 @@
 ## 2025-02-18 - Memoizing list item components on frequent parent updates
 **Learning:** In terminal-like interfaces (`TerminalScreen`) where state updates frequently (like on every keystroke when typing an OBD command), unmemoized list item components (like `ResponseLineItem`) will cause massive redundant re-renders. When a long list is rendered inside a component taking text input, the individual row components must be memoized.
 **Action:** Always wrap list item components that take stable props (like parsed log objects) in `memo(...)` when rendered in a parent that receives frequent, high-velocity state updates.
+
+## 2026-10-29 - Memoizing derived arrays and extracting invariant transformations in high-frequency React components
+**Learning:** In React components dealing with high-frequency telemetry where derived state (like filtered lists) is rendered, inline recalculations using intensive string manipulation (like `.toLowerCase()`) inside loops will cause significant CPU overhead and garbage collection on every re-render tick. `useMemo` should be applied to the derivation, and loop invariants (like transforming the search query to lowercase) should be extracted out of the `.filter()` loop.
+**Action:** When filtering static or state lists based on user input, extract the input transformation (e.g. `.toLowerCase()`) to a variable outside the filter loop and wrap the entire result in `useMemo`.

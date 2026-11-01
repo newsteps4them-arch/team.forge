@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useMemo } from "react";
 import { motion } from "motion/react";
 import { ArrowLeft, Gauge, Activity, Zap, Search, CheckCircle } from "lucide-react";
 import { D3StreamChart } from "../../components/D3StreamChart";
@@ -128,11 +128,18 @@ export const LiveDataScreen = ({
     
   const activePidDef = AVAILABLE_PIDS.find(p => p.id === selectedChartPid) || AVAILABLE_PIDS[0];
 
-  const filteredPids = AVAILABLE_PIDS.filter(pid => {
-    const matchesSearch = pid.name.toLowerCase().includes(searchPid.toLowerCase()) || pid.id.toLowerCase().includes(searchPid.toLowerCase());
-    const matchesGroup = filterGroup === "All" || pid.group === filterGroup;
-    return matchesSearch && matchesGroup;
-  });
+  // ⚡ Bolt Optimization: Memoize filtered PIDs and extract string manipulations
+  // LiveDataScreen receives frequent telemetry updates. Memoizing this array and
+  // pulling .toLowerCase() out of the loop prevents redundant string creation
+  // and garbage collection pauses on every tick.
+  const filteredPids = useMemo(() => {
+    const searchLower = searchPid.toLowerCase();
+    return AVAILABLE_PIDS.filter(pid => {
+      const matchesSearch = pid.name.toLowerCase().includes(searchLower) || pid.id.toLowerCase().includes(searchLower);
+      const matchesGroup = filterGroup === "All" || pid.group === filterGroup;
+      return matchesSearch && matchesGroup;
+    });
+  }, [searchPid, filterGroup]);
 
   const [tab, setTab] = useState<"dashboard" | "maps">("dashboard");
 

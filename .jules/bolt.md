@@ -7,3 +7,6 @@
 ## 2025-02-18 - Memoizing list item components on frequent parent updates
 **Learning:** In terminal-like interfaces (`TerminalScreen`) where state updates frequently (like on every keystroke when typing an OBD command), unmemoized list item components (like `ResponseLineItem`) will cause massive redundant re-renders. When a long list is rendered inside a component taking text input, the individual row components must be memoized.
 **Action:** Always wrap list item components that take stable props (like parsed log objects) in `memo(...)` when rendered in a parent that receives frequent, high-velocity state updates.
+## 2025-02-19 - Extracted search lowercasing outside filter iteration in LiveDataScreen
+**Learning:** In React components managing lists that filter dynamically based on user input, calling string manipulation methods like `.toLowerCase()` on the search term *inside* the filter loop is inefficient. It forces the Javascript engine to compute the lowercase version of the string for every item in the list on every keystroke, which can cause CPU spikes and degrade performance when the array is large or updates are frequent.
+**Action:** Always extract invariant computations, such as `toLowerCase()` calls for the search query, *outside* the `filter` or `map` callback to minimize redundant processing.

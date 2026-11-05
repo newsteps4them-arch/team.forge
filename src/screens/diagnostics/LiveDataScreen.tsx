@@ -128,11 +128,14 @@ export const LiveDataScreen = ({
     
   const activePidDef = AVAILABLE_PIDS.find(p => p.id === selectedChartPid) || AVAILABLE_PIDS[0];
 
-  const filteredPids = AVAILABLE_PIDS.filter(pid => {
-    const matchesSearch = pid.name.toLowerCase().includes(searchPid.toLowerCase()) || pid.id.toLowerCase().includes(searchPid.toLowerCase());
-    const matchesGroup = filterGroup === "All" || pid.group === filterGroup;
-    return matchesSearch && matchesGroup;
-  });
+  const filteredPids = React.useMemo(() => {
+    const searchLower = searchPid.toLowerCase();
+    return AVAILABLE_PIDS.filter(pid => {
+      const matchesSearch = pid.name.toLowerCase().includes(searchLower) || pid.id.toLowerCase().includes(searchLower);
+      const matchesGroup = filterGroup === "All" || pid.group === filterGroup;
+      return matchesSearch && matchesGroup;
+    });
+  }, [searchPid, filterGroup]);
 
   const [tab, setTab] = useState<"dashboard" | "maps">("dashboard");
 
